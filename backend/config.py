@@ -13,4 +13,4 @@ SHELL_MIN_TX = int(os.getenv("SHELL_MIN_TX", "2"))
 SHELL_MAX_TX = int(os.getenv("SHELL_MAX_TX", "3"))
 
 # Whitelist
-WHITELIST_FILE = os.getenv("WHITELIST_FILE", "whitelist.json")
+WHITELIST_FILE = os.getenv("WHITELIST_FILE", "/tmp/whitelist.json")

@@ -46,30 +46,25 @@ if os.path.exists(WHITELIST_FILE):
 class WhitelistRequest(BaseModel):
     account_ids: List[str]
 
-@app.post("/api/whitelist/add")
-async def add_to_whitelist(req: WhitelistRequest):
+# --- CORE LOGIC ---
+async def logic_add_whitelist(req: WhitelistRequest):
     global whitelist
-    
-    with _whitelist_lock: # Thread-safe update
+    with _whitelist_lock:
         whitelist.update(req.account_ids)
-        # Save to file
         try:
             with open(WHITELIST_FILE, "w") as f:
                 json.dump(list(whitelist), f)
         except Exception as e:
             print(f"Failed to save whitelist: {e}")
-        
     return {"message": f"Added {len(req.account_ids)} accounts to whitelist", "total_whitelisted": len(whitelist)}
 
-@app.get("/api/whitelist")
-async def get_whitelist():
+async def logic_get_whitelist():
     return {"whitelisted_accounts": list(whitelist)}
 
 # Global cache for simplicity in hackathon context
 latest_result = None
 
-@app.post("/api/upload", response_model=DetectionResponse)
-async def upload_transactions(file: UploadFile = File(...)):
+async def logic_upload(file: UploadFile):
     global latest_result
     start_time = time.perf_counter()
     
@@ -87,12 +82,6 @@ async def upload_transactions(file: UploadFile = File(...)):
     # 4. Scoring & Grouping
     scorer = FraudScorer(df)
     
-    # Pass 0.0 initially, we update summary later or just pass current diff?
-    # We want processing_time to include scoring.
-    # So we score first, THEN measure end time.
-    # But scorer.score expects processing_time.
-    # Let's pass 0.0 and update the summary object after.
-    
     result = scorer.score(cycles, smurfing, layered, 0.0, whitelist)
     
     end_time = time.perf_counter()
@@ -104,8 +93,7 @@ async def upload_transactions(file: UploadFile = File(...)):
     latest_result = result
     return result
 
-@app.get("/api/download-json", response_model=DetectionResponse)
-async def download_json():
+async def logic_download():
     global latest_result
     if latest_result:
         return latest_result
@@ -120,6 +108,41 @@ async def download_json():
         ),
         graph_data={"nodes": [], "edges": []}
     )
+
+# --- DUAL ROUTING (Root + /api prefix) ---
+# This ensures that whether Vercel strips the prefix or not, the route is found.
+# It also handles local dev (usually root or whatever vite proxy sends).
+
+# Helper to register routes
+def register_route(path, endpoint, methods, response_model=None):
+    app.add_api_route(path, endpoint, methods=methods, response_model=response_model)
+    # Register explicitly properly
+    # Note: add_api_route takes 'endpoint' which is the function.
+
+# 1. Whitelist Add
+app.add_api_route("/whitelist/add", logic_add_whitelist, methods=["POST"])
+app.add_api_route("/api/whitelist/add", logic_add_whitelist, methods=["POST"])
+
+# 2. Whitelist Get
+app.add_api_route("/whitelist", logic_get_whitelist, methods=["GET"])
+app.add_api_route("/api/whitelist", logic_get_whitelist, methods=["GET"])
+
+# 3. Upload
+app.add_api_route("/upload", logic_upload, methods=["POST"], response_model=DetectionResponse)
+app.add_api_route("/api/upload", logic_upload, methods=["POST"], response_model=DetectionResponse)
+
+# 4. Download
+app.add_api_route("/download-json", logic_download, methods=["GET"], response_model=DetectionResponse)
+app.add_api_route("/api/download-json", logic_download, methods=["GET"], response_model=DetectionResponse)
+
+@app.get("/")
+def health_check():
+    return {"status": "ok", "message": "Backend is running"}
+
+@app.get("/api")
+def health_check_api():
+    return {"status": "ok", "message": "Backend API is running"}
+
 
 if __name__ == "__main__":
     import uvicorn
