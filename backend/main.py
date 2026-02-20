@@ -6,7 +6,7 @@ from .detectors import build_adjacency, find_cycles, find_smurfing, find_layered
 from .scoring import FraudScorer
 import time
 
-app = FastAPI(title="RIFT 2026 Money Muling Detection", root_path="/api")
+app = FastAPI(title="RIFT 2026 Money Muling Detection")
 
 app.add_middleware(
     CORSMiddleware,
@@ -46,7 +46,7 @@ if os.path.exists(WHITELIST_FILE):
 class WhitelistRequest(BaseModel):
     account_ids: List[str]
 
-@app.post("/whitelist/add")
+@app.post("/api/whitelist/add")
 async def add_to_whitelist(req: WhitelistRequest):
     global whitelist
     
@@ -61,14 +61,14 @@ async def add_to_whitelist(req: WhitelistRequest):
         
     return {"message": f"Added {len(req.account_ids)} accounts to whitelist", "total_whitelisted": len(whitelist)}
 
-@app.get("/whitelist")
+@app.get("/api/whitelist")
 async def get_whitelist():
     return {"whitelisted_accounts": list(whitelist)}
 
 # Global cache for simplicity in hackathon context
 latest_result = None
 
-@app.post("/upload", response_model=DetectionResponse)
+@app.post("/api/upload", response_model=DetectionResponse)
 async def upload_transactions(file: UploadFile = File(...)):
     global latest_result
     start_time = time.perf_counter()
@@ -104,7 +104,7 @@ async def upload_transactions(file: UploadFile = File(...)):
     latest_result = result
     return result
 
-@app.get("/download-json", response_model=DetectionResponse)
+@app.get("/api/download-json", response_model=DetectionResponse)
 async def download_json():
     global latest_result
     if latest_result:
