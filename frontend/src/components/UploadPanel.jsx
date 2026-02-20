@@ -15,7 +15,7 @@ export default function UploadPanel({ onAnalysisComplete }) {
 
         try {
             const res = await axios.post(
-                "http://localhost:8000/upload", // backend URL
+                "/api/upload", // backend URL
                 formData
             );
             console.log(res.data);

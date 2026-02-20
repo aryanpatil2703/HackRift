@@ -60,7 +60,7 @@ export default function App() {
         formData.append("file", file);
 
         try {
-            const res = await axios.post("http://localhost:8000/upload", formData);
+            const res = await axios.post("/api/upload", formData);
             const data = res.data;
 
             // Transform Backend Data (Cytoscape format) to Frontend Format (React Flow)
@@ -239,7 +239,7 @@ export default function App() {
                                         <button className="bg-rose-600 py-2 rounded flex items-center justify-center gap-2 hover:bg-rose-700 transition">Flag Selected</button>
                                         <button className="bg-slate-700 py-2 rounded hover:bg-slate-600 transition">Export Report (PDF)</button>
                                         <a
-                                            href="http://localhost:8000/download-json"
+                                            href="/api/download-json"
                                             download
                                             className="bg-slate-700 py-2 rounded hover:bg-slate-600 transition text-center block"
                                         >
