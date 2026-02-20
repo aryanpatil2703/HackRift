@@ -14,8 +14,9 @@ export default function UploadPanel({ onAnalysisComplete }) {
         formData.append("file", file);
 
         try {
+            const API_URL = import.meta.env.VITE_API_URL || "/api";
             const res = await axios.post(
-                "/api/upload", // backend URL
+                `${API_URL}/upload`, // backend URL
                 formData
             );
             console.log(res.data);
