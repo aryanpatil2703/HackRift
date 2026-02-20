@@ -1,7 +1,8 @@
 # RIFT 2026 Money Muling Detection System
 
 ## 🚀 Live Demo
-[Insert Public URL Here]
+Frontend : https://hackrift-1.onrender.com
+Backend : https://hackrift.onrender.com/api
 
 ## 🛠 Tech Stack
 - **Backend:** Python, FastAPI, Pandas, NetworkX
@@ -90,4 +91,6 @@ To avoid flagging legitimate merchants or payroll:
 4. Click "Download JSON" to get the exact report format.
 
 ## 👥 Team Members
-- [Your Name/Team Name]
+- Aryan Patil
+- Saurabh Jha
+- Pratham kingrani
