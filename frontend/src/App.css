@@ -1,0 +1,4 @@
+/* Global app shell tweaks for Tailwind-based layout */
+#root {
+  min-height: 100vh;
+}
